@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -33,12 +34,13 @@ public class UserController {
                                                 MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<UserRest> getUser(@PathVariable String userId) {
 
-        if (true) throw new UserServiceException("A User Service Exception is thrown");
+        //if (true) throw new UserServiceException("A User Service Exception is thrown");
 
         if (users.containsKey(userId)) {
             return new ResponseEntity<>(users.get(userId), HttpStatus.OK);
         } else {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+            throw new UserServiceException("A User Service Exception is thrown");
+            //return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
     }
 
@@ -49,6 +51,10 @@ public class UserController {
     public ResponseEntity<UserRest> createUser(@Valid @RequestBody UserDetailsRequest userDetails) {
 
         UserRest userRest = userService.createUser(userDetails);
+
+        if (users == null) users = new HashMap<>();
+        users.put(userRest.getUserId(), userRest);
+
         return new ResponseEntity<>(userRest, HttpStatus.OK);
     }
 
