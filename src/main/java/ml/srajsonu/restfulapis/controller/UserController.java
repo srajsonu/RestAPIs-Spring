@@ -1,23 +1,27 @@
 package ml.srajsonu.restfulapis.controller;
 
+import ml.srajsonu.restfulapis.exceptions.UserServiceException;
 import ml.srajsonu.restfulapis.model.UpdateUserDetails;
 import ml.srajsonu.restfulapis.model.UserRest;
 import ml.srajsonu.restfulapis.model.UserDetailsRequest;
+import ml.srajsonu.restfulapis.services.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/users")
 public class UserController {
 
     Map<String, UserRest> users;
+
+    @Autowired
+    UserService userService;
 
     @GetMapping
     public String getUsers(@RequestParam(value = "page", defaultValue = "1") int page,
@@ -28,6 +32,8 @@ public class UserController {
     @GetMapping(path = "/{userId}", produces = {MediaType.APPLICATION_XML_VALUE,
                                                 MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<UserRest> getUser(@PathVariable String userId) {
+
+        if (true) throw new UserServiceException("A User Service Exception is thrown");
 
         if (users.containsKey(userId)) {
             return new ResponseEntity<>(users.get(userId), HttpStatus.OK);
@@ -42,17 +48,7 @@ public class UserController {
                         MediaType.APPLICATION_JSON_VALUE})
     public ResponseEntity<UserRest> createUser(@Valid @RequestBody UserDetailsRequest userDetails) {
 
-        UserRest userRest = new UserRest();
-        userRest.setFirstName(userDetails.getFirstName());
-        userRest.setLastName(userDetails.getLastName());
-        userRest.setEmail(userDetails.getEmail());
-
-        String userId = UUID.randomUUID().toString();
-        userRest.setUserId(userId);
-
-        if (users == null) users = new HashMap<>();
-        users.put(userId, userRest);
-
+        UserRest userRest = userService.createUser(userDetails);
         return new ResponseEntity<>(userRest, HttpStatus.OK);
     }
 
@@ -67,13 +63,11 @@ public class UserController {
         userDetails.setLastName(updateUser.getLastName());
 
         users.put(userId, userDetails);
-
         return userDetails;
     }
 
     @DeleteMapping(path = "/{userId}")
     public ResponseEntity<Void> deleteUser(@PathVariable String userId) {
-
         users.remove(userId);
         return ResponseEntity.noContent().build();
     }
